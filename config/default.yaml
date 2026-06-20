@@ -1,0 +1,71 @@
+# Default configuration for the Rear-End ADAS Collision Warning System.
+# Override any value via a custom YAML file passed with --config.
+
+model:
+  name: "yolov8n.pt"
+  confidence: 0.4
+  iou: 0.5
+  # COCO class IDs: car=2, motorcycle=3, bus=5, truck=7
+  classes: [2, 3, 5, 7]
+
+tracker:
+  type: "bytetrack"
+  persist: true
+
+camera:
+  fov_horizontal_deg: 90.0
+  # Set an explicit focal length in pixels, or leave null to derive from FOV
+  # and frame width at runtime: f_px = (W / 2) / tan(FOV / 2)
+  focal_length_px: null
+  vehicle_widths_m:
+    car: 1.8
+    motorcycle: 0.8
+    bus: 2.5
+    truck: 2.5
+  assumed_vehicle_width_m: 1.8  # fallback for unknown classes
+
+estimation:
+  distance_ema_alpha: 0.3
+  distance_min_m: 1.0
+  distance_max_m: 100.0
+  speed_ema_alpha: 0.2
+  speed_min_mps: 0.5
+  speed_warmup_frames: 5
+  ttc_max_display_s: 10.0
+
+ttc:
+  minimum_speed_mps: 0.5
+  maximum_ttc_seconds: 15
+  display_infinity_as: "INF"
+
+risk:
+  # TTC thresholds (seconds): DANGER <= danger_max, CAUTION <= caution_max, else SAFE
+  danger_ttc_max_seconds: 2.0
+  caution_ttc_max_seconds: 5.0
+  messages:
+    safe: "Safe Following Distance"
+    caution: "Reduce Speed"
+    danger: "Collision Warning!"
+
+visualization:
+  show_all_tracks: true
+  hud_position: "top-left"
+  danger_flash: true
+
+io:
+  output_codec: "mp4v"
+  output_fps: null  # null = match input video FPS
+
+# Trapezoidal ROI approximating the ego lane (normalized coordinates in [0, 1]).
+# Points are ordered: top-left, top-right, bottom-right, bottom-left.
+lead_vehicle:
+  roi:
+    points:
+      - [0.30, 0.55]
+      - [0.70, 0.55]
+      - [0.95, 1.00]
+      - [0.05, 1.00]
+
+logging:
+  level: "INFO"
+  log_file: null  # null = console only; set path to also write to file

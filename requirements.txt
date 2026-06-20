@@ -1,0 +1,7 @@
+# Core runtime dependencies
+ultralytics>=8.1.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+PyYAML>=6.0
+
+# Development / testing (optional — install with: pip install -r requirements-dev.txt)
