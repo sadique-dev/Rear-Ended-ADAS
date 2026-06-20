@@ -1,117 +1,260 @@
-# Camera-Based Rear-End ADAS Collision Warning System
+# 🚗 Camera-Based Rear-End ADAS Collision Warning System
 
-A portfolio-grade computer vision project that detects vehicles in dashcam footage, tracks them across frames, estimates distance and relative speed using monocular vision, computes Time-To-Collision (TTC), and renders collision risk overlays on the output video.
+A modular **Computer Vision-based Rear-End Advanced Driver Assistance System (ADAS)** developed using **YOLOv8**, **ByteTrack**, and **Monocular Vision** to detect rear vehicles, estimate distance, calculate Time-To-Collision (TTC), and provide collision risk warnings from a single rear-facing camera.
 
-## Features
+This project was developed as a B.Tech Final Year Project and demonstrates a complete AI-powered rear-end collision warning pipeline.
 
-- **Vehicle Detection** — Pre-trained Ultralytics YOLOv8 (no custom training)
-- **Multi-Object Tracking** — ByteTrack for persistent vehicle IDs
-- **Monocular Distance Estimation** — Pinhole camera model from bounding-box width
-- **Relative Speed & TTC** — Temporal differentiation with smoothing
-- **Risk Classification** — SAFE / CAUTION / DANGER warning levels
-- **Visual Overlays** — Color-coded bounding boxes and HUD panel
-- **Configurable** — All thresholds and parameters in YAML
+---
 
-## Project Structure
+# 📌 Features
+
+- 🚗 Vehicle Detection using YOLOv8
+- 🔄 Multi-Object Tracking using ByteTrack
+- 🎯 Lead Vehicle Selection using Region of Interest (ROI)
+- 📏 Monocular Distance Estimation
+- 📉 Relative Speed Estimation
+- ⏱️ Time-To-Collision (TTC) Estimation
+- ⚠️ Collision Risk Classification
+- 🎨 Real-Time Video Overlay
+- 💾 Processed Video Output Generation
+- 🧩 Modular and Scalable Project Architecture
+
+---
+
+# 🏗️ System Pipeline
+
+Input Video
+
+↓
+
+Video Reader
+
+↓
+
+YOLOv8 Vehicle Detection
+
+↓
+
+ByteTrack Multi-Object Tracking
+
+↓
+
+Lead Vehicle Selection
+
+↓
+
+Distance Estimation
+
+↓
+
+Relative Speed Estimation
+
+↓
+
+Time-To-Collision (TTC)
+
+↓
+
+Risk Classification
+
+↓
+
+Visualization Overlay
+
+↓
+
+Output Video
+
+---
+
+# 📂 Project Structure
 
 ```
 Rear-End-ADAS-System/
-├── config/default.yaml      # Tunable parameters
+
+├── config/
+├── data/
+│   ├── samples/
+│   └── outputs/
+│
+├── models/
+│
 ├── src/
-│   ├── main.py              # CLI entry point
-│   ├── detection/           # YOLO detector
-│   ├── tracking/            # ByteTrack tracker
-│   ├── estimation/          # Distance, speed, TTC
-│   ├── risk/                # Risk classifier
-│   ├── visualization/       # HUD overlays
-│   ├── io/                  # Video reader/writer
-│   ├── pipeline/            # Pipeline orchestrator
-│   └── utils/               # Config, logging, helpers
-├── tests/                   # Unit tests
-├── data/samples/            # Input videos
-├── data/outputs/            # Processed output videos
-└── models/                  # YOLO weights (auto-downloaded)
+│   ├── detection/
+│   ├── tracking/
+│   ├── estimation/
+│   ├── risk/
+│   ├── visualization/
+│   ├── pipeline/
+│   ├── io/
+│   └── utils/
+│
+├── tests/
+├── examples/
+├── README.md
+└── requirements.txt
 ```
 
-## Requirements
+---
 
-- Python 3.10+
-- NVIDIA GPU recommended (CUDA) for real-time inference
-- CPU-only supported (slower)
+# 🛠️ Technologies Used
 
-## Installation
+- Python
+- OpenCV
+- YOLOv8 (Ultralytics)
+- ByteTrack
+- NumPy
+- PyTorch
+- YAML Configuration
+- Object-Oriented Programming
+- Computer Vision
+
+---
+
+# ⚙️ How It Works
+
+### 1. Vehicle Detection
+
+YOLOv8 detects rear vehicles in every frame.
+
+Supported classes:
+
+- Car
+- Motorcycle
+- Bus
+- Truck
+
+---
+
+### 2. Multi-Object Tracking
+
+ByteTrack assigns a persistent Track ID to each detected vehicle, allowing the same vehicle to be tracked across consecutive frames.
+
+---
+
+### 3. Lead Vehicle Selection
+
+A configurable Region of Interest (ROI) is used to identify the primary vehicle directly behind the ego vehicle.
+
+If multiple vehicles are inside the ROI, the closest vehicle is selected using bounding-box size.
+
+---
+
+### 4. Distance Estimation
+
+Distance is estimated using the pinhole camera model:
+
+Distance = (Real Vehicle Width × Focal Length) / Bounding Box Width
+
+Vehicle-specific widths are used for improved estimation.
+
+---
+
+### 5. Relative Speed Estimation
+
+Relative speed is calculated using changes in estimated distance over time.
+
+Relative Speed = ΔDistance / ΔTime
+
+---
+
+### 6. Time-To-Collision (TTC)
+
+When the lead vehicle is approaching:
+
+TTC = Distance / |Relative Speed|
+
+Otherwise:
+
+TTC = INF
+
+---
+
+### 7. Risk Classification
+
+The estimated TTC is classified into:
+
+| Risk | TTC |
+|------|------|
+| 🟢 SAFE | > 5 seconds |
+| 🟡 CAUTION | 2–5 seconds |
+| 🔴 DANGER | ≤ 2 seconds |
+
+---
+
+# ▶️ Running the Project
+
+Install dependencies
 
 ```bash
-# Clone the repository
-git clone https://github.com/<your-username>/Rear-End-ADAS-System.git
-cd Rear-End-ADAS-System
-
-# Create and activate a virtual environment
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # Linux / macOS
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Optional: install in editable mode with CLI entry point
-pip install -e .
 ```
 
-## Usage
+Run the complete pipeline
 
 ```bash
-# Process a video with default settings
-python -m src.main --input data/samples/drive.mp4
-
-# Specify output path and custom config
-python -m src.main \
-    --input data/samples/drive.mp4 \
-    --output data/outputs/result.mp4 \
-    --config config/default.yaml
-
-# Override model and show live preview
-python -m src.main \
-    --input data/samples/drive.mp4 \
-    --model yolov8s.pt \
-    --display
+python examples/final_demo.py --input data/samples/drive.mp4 --output data/outputs/final_demo.mp4
 ```
 
-## Configuration
+or
 
-All parameters live in `config/default.yaml`. Key sections:
+```bash
+python -m src.main --input data/samples/drive.mp4 --output data/outputs/final_demo.mp4
+```
 
-| Section | Purpose |
-|---|---|
-| `model` | YOLO model name, confidence, IoU, vehicle class IDs |
-| `tracker` | ByteTrack / BoT-SORT selection |
-| `camera` | Horizontal FOV, assumed vehicle width |
-| `estimation` | EMA smoothing, speed noise floor, TTC cap |
-| `risk` | DANGER / CAUTION distance and TTC thresholds |
-| `visualization` | HUD position, overlay options |
-| `io` | Output codec and FPS |
+---
 
-## Development Status
+# 📊 Example Output
 
-| Module | Status |
-|---|---|
-| Project Setup | Done |
-| Video Reader & Writer | Pending |
-| YOLO Detection | Pending |
-| ByteTrack Tracking | Pending |
-| Lead Vehicle Selection | Pending |
-| Distance Estimation | Pending |
-| Speed Estimation | Pending |
-| TTC Calculation | Pending |
-| Risk Classification | Pending |
-| Visualization / HUD | Pending |
-| Pipeline Integration | Pending |
-| Testing | Pending |
+The generated output video displays:
 
-## Architecture
+- Vehicle Detection
+- Track ID
+- Vehicle Class
+- Detection Confidence
+- Estimated Distance
+- Relative Speed
+- Time-To-Collision (TTC)
+- Collision Risk Level
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full software architecture document.
+---
 
-## License
+# ⚠️ Limitations
 
-MIT
+- Uses a single monocular camera.
+- Distance estimation is approximate and depends on assumed vehicle widths.
+- Performance may decrease under poor lighting or severe weather.
+- Not intended for real-world safety-critical driving applications.
+- Designed for educational and research purposes.
+
+---
+
+# 🚀 Future Improvements
+
+- Lane Detection
+- Camera Calibration
+- Stereo Vision Support
+- Radar/LiDAR Sensor Fusion
+- DeepSORT / OC-SORT Comparison
+- Driver Alert Sound System
+- Real-Time Webcam Support
+- Model Optimization for Edge Devices
+
+---
+
+# 👨‍💻 Author
+
+**Mohd Sadique**
+
+B.Tech Computer Science & Engineering
+
+AI | Machine Learning | Computer Vision
+
+---
+
+# ⭐ Acknowledgements
+
+- Ultralytics YOLOv8
+- ByteTrack
+- OpenCV
+- PyTorch
